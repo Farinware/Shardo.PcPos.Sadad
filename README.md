@@ -63,7 +63,7 @@ var result = await client.SaleAsync(conn, sale);
 ### LAN
 وقتی دستگاه POS روی شبکه است، اتصال با IP/Port انجام می‌شود:
 ```csharp
-var lan = PcPosConnection.Lan("172.24.32.212", "8888", DeviceType.BlueBird, "C0000301", "M00000000000152");
+var lan = PcPosConnection.Lan("172.16.33.180", "8888", DeviceType.BlueBird, "C0000301", "M00000000000152");
 ```
 
 ### Serial
