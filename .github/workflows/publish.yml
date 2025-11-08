@@ -1,17 +1,14 @@
-name: Publish to NuGet
+name: Publish to NuGet (from csproj Version)
 
 on:
-  workflow_dispatch: {}
   push:
-    tags:
-      - "v*"
+    branches: [ main ]
+    tags:     [ "v*" ]
+  workflow_dispatch: {}
 
 jobs:
   pack-and-publish:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
 
     steps:
       - name: Checkout
@@ -21,8 +18,8 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
+            9.0.x
             8.0.x
-            7.0.x
 
       - name: Restore
         run: dotnet restore
@@ -30,33 +27,16 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Determine version from tag
-        id: version
-        run: echo "VALUE=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
-
-      - name: Pack (override Version)
+      - name: Pack (use Version from csproj)
         run: |
           dotnet pack src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj \
             --configuration Release \
-            -p:Version=${{ steps.version.outputs.VALUE }} \
             -p:ContinuousIntegrationBuild=true \
             -o out
 
-      - name: Publish to NuGet (nupkg)
+      - name: Publish to nuget.org (nupkg & snupkg)
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          dotnet nuget push "out/*.nupkg" \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
-
-      - name: Publish symbols (snupkg)
-        if: always()
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          dotnet nuget push "out/*.snupkg" \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --skip-duplicate
+          dotnet nuget push "out/*.nupkg"  --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "out/*.snupkg" --api-key "$NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
