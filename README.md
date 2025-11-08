@@ -1,6 +1,6 @@
 # Shardo.PcPos.Sadad
 
-کتابخانهٔ دات‌نت برای اتصال به **PcPos REST API** (سداد)؛ سازگار با **netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0**، تمیز، ماژولار و قابل تزریق در DI.
+کتابخانهٔ دات‌نت برای اتصال به **PcPos REST API** (سداد)؛ سازگار با **netstandard2.0 و netstandard2.1 و netcoreapp3.0 و netcoreapp3.1 و net5.0 و net6.0 و net7.0 و net8.0 و net9.0**، تمیز، ماژولار و قابل تزریق در DI.
 
 ---
 
