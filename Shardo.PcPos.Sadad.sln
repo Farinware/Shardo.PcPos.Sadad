@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shardo.PcPos.Sadad", "src\Shardo.PcPos.Sadad\Shardo.PcPos.Sadad.csproj", "{D328651F-A782-8A06-D5D1-8D9CD0128B32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shardo.PcPos.Sadad.Tests", "test\Shardo.PcPos.Sadad.Tests\Shardo.PcPos.Sadad.Tests.csproj", "{EFE8E159-BAEB-4608-AA88-AF89D945C84F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D328651F-A782-8A06-D5D1-8D9CD0128B32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D328651F-A782-8A06-D5D1-8D9CD0128B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D328651F-A782-8A06-D5D1-8D9CD0128B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D328651F-A782-8A06-D5D1-8D9CD0128B32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFE8E159-BAEB-4608-AA88-AF89D945C84F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFE8E159-BAEB-4608-AA88-AF89D945C84F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFE8E159-BAEB-4608-AA88-AF89D945C84F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFE8E159-BAEB-4608-AA88-AF89D945C84F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62FD9091-A3DB-421D-ADC6-AA42E7823AE8}
+	EndGlobalSection
+EndGlobal
