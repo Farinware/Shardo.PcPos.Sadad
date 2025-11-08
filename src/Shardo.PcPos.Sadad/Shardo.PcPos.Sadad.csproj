@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
 		<Nullable>enable</Nullable>
@@ -8,12 +8,12 @@
 		<RootNamespace>Shardo.PcPos.Sadad</RootNamespace>
 		<PackageId>Shardo.PcPos.Sadad</PackageId>
 		<Version>0.2.0</Version>
-		<Authors>Shardo</Authors>
-		<Company>Shardo</Company>
+		<Authors>Farinware Co</Authors>
+		<Company>Farinware Co</Company>
 		<Product>Shardo PcPos Sadad Client</Product>
-		<Description>.NET client for Sadad PCPOS REST API (PcPos REST). Multi-targeted and DI-friendly. Uses Newtonsoft.Json.</Description>
+		<Description>.NET client for Sadad PCPOS REST API (PcPos REST). Multi-targeted and DI-friendly.</Description>
 		<PackageTags>Sadad;PcPos;POS;REST;Payment;Iran;BlueBird;Magic;Bitel;Pax;Castles</PackageTags>
-		<RepositoryUrl>https://github.com/your/repo</RepositoryUrl>
+		<RepositoryUrl>https://github.com/Farinware/Shardo.PcPos.Sadad</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
