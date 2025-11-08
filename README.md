@@ -1,19 +1,6 @@
-# Shardo.Sadad
+# Shardo.PcPos.Sadad
 
-کتابخانهٔ دات‌نت برای اتصال به **PcPos REST API** (سداد)؛ سازگار با **.NET 8**، تمیز، ماژولار و قابل تزریق در DI.
-
-> این README برای انتشار در GitHub آماده شده است. تمام عناوین، مثال‌ها و راهنما **فارسی** است.
-
----
-
-## فهرست مطالب
-- [ویژگی‌ها](#ویژگیها)
-- [نصب](#نصب)
-- [راه‌اندازی سریع](#راهاندازی-سریع)
-- [اتصالات (LAN/Serial)](#اتصالات-lanserial)
-- [Enums و مدل‌های کلیدی](#enums-و-مدلهای-کلیدی)
-- [راهنمای کامل توابع (فارسی)](#راهنمای-کامل-توابع-فارسی)
-- [نکات و عیب‌یابی](#نکات-و-عیبیابی)
+کتابخانهٔ دات‌نت برای اتصال به **PcPos REST API** (سداد)؛ سازگار با **netstandard2.0;netstandard2.1;netcoreapp3.0;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0**، تمیز، ماژولار و قابل تزریق در DI.
 
 ---
 
@@ -21,7 +8,7 @@
 - پوشش مستقیم تمام متدهای **PcPos REST API**
 - سازگار با **HttpClient** و **Dependency Injection**
 - مدل‌های ورودی/خروجی تایپ‌شده
-- پشتیبانی از **چندساًحابی (تسهیم)** و ساخت رشتهٔ `MultiAccount`
+- پشتیبانی از **چند حسابی (تسهیم)** `MultiAccount`
 - مپ پیام‌های متداول `ResponseCode` به فارسی
 
 > این کتابخانه صرفاً کلاینت است و سرور PcPos باید از قبل نصب/اجرا شده باشد.
@@ -56,16 +43,14 @@ using Shardo.Sadad.Models.Enums;
 using Shardo.Sadad.Models.Requests;
 
 var client = provider.GetRequiredService<IPcPosClient>();
-var conn = PcPosConnection.Lan("172.24.32.212", "8888", DeviceType.BlueBird, "C0000301", "M00000000000152");
+var conn = PcPosConnection.Lan("172.16.33.180", "8888", DeviceType.BlueBird, "C0000301", "M00000000000152");
 
 var sale = new SaleRequest
 {
-    OrderId = "435261",
-    RetryTimeOut = "5000, 5000, 5000",
-    ResponseTimeout = "180000, 5000, 5000",
-    Amount = "50000",
-    MultiAccount = MultiAccountBuilder.ByRows(("1","10"), ("2","30")).Build(),
-    DivideTypeEnum = DivideType.Percentage
+    OrderId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+    SaleId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+    Amount = "1000",
+    AdvertisementData = "TEST"
 };
 
 var result = await client.SaleAsync(conn, sale);
@@ -86,8 +71,6 @@ var lan = PcPosConnection.Lan("172.24.32.212", "8888", DeviceType.BlueBird, "C00
 ```csharp
 var serial = PcPosConnection.Serial("COM1", DeviceType.Magic, "001", "011900133");
 ```
-
-> فیلدهای `ConnectionType` باید دقیقاً `"Lan"` یا `"Serial"` در Payload باشند. این تبدیل به‌صورت خودکار در کلاینت انجام می‌شود.
 
 ---
 
@@ -133,7 +116,7 @@ var serial = PcPosConnection.Serial("COM1", DeviceType.Magic, "001", "011900133"
 
 ---
 
-## راهنمای کامل توابع (فارسی)
+## راهنمای کامل توابع
 
 > نگاشت نام تابع‌ها به مسیرهای REST و توضیح فارسی عملیات. برای اختصار، در هر آیتم یک نمونهٔ حداقلی آمده است.
 
@@ -158,212 +141,3 @@ var serial = PcPosConnection.Serial("COM1", DeviceType.Magic, "001", "011900133"
 | `GetAccountsAsync(...)` | `POST /api/GetAccounts` | لیست حساب‌های متصل به دستگاه |
 | `RestartAsync()` | `GET /api/Restart` | راه‌اندازی مجدد سرویس REST |
 | `MagicInquiryAsync(...)` | `POST /api/MagicInquiry` | استعلام بر اساس RRN برای Magic (Serial) |
-
-### نمونه‌ها
-
-<details>
-<summary><b>GetInfoAsync</b> – وضعیت سرویس</summary>
-
-```csharp
-var info = await client.GetInfoAsync();
-```
-</details>
-
-<details>
-<summary><b>GetDevicesAsync</b> – کشف دستگاه‌ها</summary>
-
-```csharp
-var devices = await client.GetDevicesAsync(0, 0);
-```
-</details>
-
-<details>
-<summary><b>GetSerialPortsAsync</b> – پورت‌های سریال</summary>
-
-```csharp
-var ports = await client.GetSerialPortsAsync();
-```
-</details>
-
-<details>
-<summary><b>GetSettingsAsync</b> – تنظیمات سرویس</summary>
-
-```csharp
-var settings = await client.GetSettingsAsync();
-```
-</details>
-
-<details>
-<summary><b>DeviceInfoAsync</b> – مشخصات دستگاه</summary>
-
-```csharp
-var res = await client.DeviceInfoAsync(conn, new DeviceInfoRequest { OrderId = "9512" });
-```
-</details>
-
-<details>
-<summary><b>SaleAsync</b> – خرید</summary>
-
-```csharp
-var sale = await client.SaleAsync(conn, new SaleRequest
-{
-    OrderId = "435261",
-    RetryTimeOut = "5000, 5000, 5000",
-    ResponseTimeout = "180000, 5000, 5000",
-    Amount = "50000",
-    MultiAccount = MultiAccountBuilder.ByRows(("1","10"), ("2","30")).Build(),
-    DivideTypeEnum = DivideType.Percentage
-});
-```
-</details>
-
-<details>
-<summary><b>AbortAsync</b> – لغو عملیات</summary>
-
-```csharp
-var abort = await client.AbortAsync(conn, new AbortRequest());
-```
-</details>
-
-<details>
-<summary><b>BillPaymentAsync</b> – پرداخت قبض</summary>
-
-```csharp
-var bill = await client.BillPaymentAsync(conn, new BillPaymentRequest
-{
-    OrderId = "435261",
-    BillId = "6039628301226",
-    PayId  = "189840835"
-});
-```
-</details>
-
-<details>
-<summary><b>IdentifiedInquiryAsync</b> – خرید شناسه‌دار</summary>
-
-```csharp
-var ident = await client.IdentifiedInquiryAsync(conn, new IdentifiedInquiryRequest
-{
-    OrderId = "435261",
-    InquiryId = "139522000000014335"
-});
-```
-</details>
-
-<details>
-<summary><b>GovernmentIdentifiedInquiryAsync</b> – خرید شناسه‌دار سازمانی</summary>
-
-```csharp
-var gov = await client.GovernmentIdentifiedInquiryAsync(conn, new GovernmentIdentifiedInquiryRequest
-{
-    OrderId = "435261",
-    InquiryId = "102110000220000121100000000000",
-    Amount = "110000"
-});
-```
-چندشناسه:
-```csharp
-var many = await client.GovernmentIdentifiedInquiryAsync(conn, new GovernmentIdentifiedInquiryRequest
-{
-    OrderId = "435261",
-    InquiryIds = new()
-    {
-        new() { Index = 1, InquiryId = "102110000220000121100000000000", Amount = 35000 },
-        new() { Index = 2, InquiryId = "102110000220000121100000000001", Amount = 140000 },
-    },
-    Amount = "175000"
-});
-```
-</details>
-
-<details>
-<summary><b>CommodityBasketAsync</b> – سبد کالا</summary>
-
-```csharp
-var basket = await client.CommodityBasketAsync(conn, new CommodityBasketRequest
-{
-    OrderId = "435261",
-    Amount = "110000"
-});
-```
-</details>
-
-<details>
-<summary><b>FoodSafetyAsync</b> – امنیت غذایی</summary>
-
-```csharp
-var food = await client.FoodSafetyAsync(conn, new FoodSafetyRequest
-{
-    OrderId = "435261",
-    Amount = "110000"
-});
-```
-</details>
-
-<details>
-<summary><b>TransactionReportAsync</b> – گزارش تراکنش‌ها</summary>
-
-```csharp
-var report = await client.TransactionReportAsync(conn, new TransactionReportRequest
-{
-    OrderId = "435261",
-    Count = 13,
-    TransactionTypeEnum = TransactionType.All
-});
-```
-</details>
-
-<details>
-<summary><b>SearchAsync</b> – جستجو بر اساس OrderId</summary>
-
-```csharp
-var found = await client.SearchAsync(conn, new SearchRequest { OrderId = "78965641" });
-```
-</details>
-
-<details>
-<summary><b>CardInfoAsync</b> – دریافت مشخصات کارت</summary>
-
-```csharp
-var card = await client.CardInfoAsync(conn, new CardInfoRequest { OrderId = "435261" });
-```
-</details>
-
-<details>
-<summary><b>GetAccountsAsync</b> – لیست حساب‌های متصل</summary>
-
-```csharp
-var accounts = await client.GetAccountsAsync(conn, new GetAccountsRequest { OrderId = "435261" });
-```
-</details>
-
-<details>
-<summary><b>RestartAsync</b> – راه‌اندازی مجدد سرویس REST</summary>
-
-```csharp
-await client.RestartAsync();
-```
-</details>
-
-<details>
-<summary><b>MagicInquiryAsync</b> – استعلام RRN (Magic/Serial)</summary>
-
-```csharp
-var magic = await client.MagicInquiryAsync(new MagicInquiryRequest
-{
-    TerminalId = "001",
-    MerchantId = "011900133",
-    SerialPort = "COM1",
-    RRN = "144700170050"
-});
-```
-</details>
-
----
-
-## نکات و عیب‌یابی
-- `Content-Type` در تست Postman باید `application/json` باشد.
-- در jQuery اگر از AJAX استفاده می‌کنید، ممکن است نیاز به `application/x-www-form-urlencoded` باشد.
-- برای دستگاه‌های Serial، مقادیر پورت و تنظیمات در Config سرویس باید صحیح باشد.
-- در حالت HTTPS باید گواهی معتبر در سیستم نصب شود.
-- در صورت فعال بودن Firewall سیستم‌عامل، اجازهٔ دسترسی سرویس به پورت‌ها را بدهید.
