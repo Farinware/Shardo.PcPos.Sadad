@@ -75,6 +75,7 @@ var serial = PcPosConnection.Serial("COM1", DeviceType.Magic, "C0000301", "M0000
 ---
 ## راهنمای کامل توابع
 
+
 ### لیست سریع
 | تابع کتابخانه | مسیر REST | توضیح کوتاه |
 |---|---|---|
