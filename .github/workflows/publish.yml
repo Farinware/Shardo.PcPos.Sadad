@@ -1,4 +1,4 @@
-name: Publish to NuGet
+name: Publish to NuGet (from csproj Version)
 
 on:
   push:
@@ -24,26 +24,33 @@ jobs:
       - name: Get csproj Version
         id: get_version
         run: |
-          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj)
+          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj | tr -d '\r\n' | tr '[:upper:]' '[:lower:]')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Get NuGet Latest Version
+      - name: Get NuGet Versions
         id: get_nuget_version
         run: |
           PACKAGE_ID="shardo.pcpos.sadad"
-          URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID,,}/index.json"
-          NUGET_VERSION=$(curl -s $URL | jq -r '.versions[-1]' || echo "")
-          echo "nuget_version=$NUGET_VERSION" >> $GITHUB_OUTPUT
+          URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID}/index.json"
+          JSON=$(curl -s $URL || echo "{}")
+          if echo "$JSON" | jq -e '.versions' >/dev/null 2>&1; then
+            echo "$JSON" | jq -r '.versions[]' | tr -d '\r\n' | tr '[:upper:]' '[:lower:]' > versions.txt
+          else
+            echo "" > versions.txt
+          fi
+          echo "nuget_versions=$(cat versions.txt)" >> $GITHUB_OUTPUT
 
       - name: Compare Versions
         id: compare
         run: |
-          if [ -z "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
-            echo "same=false" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.get_version.outputs.version }}" = "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
+          CSVER="${{ steps.get_version.outputs.version }}"
+          FOUND=$(grep -x "$CSVER" versions.txt || true)
+          if [ -n "$FOUND" ]; then
             echo "same=true" >> $GITHUB_OUTPUT
+            echo "Version $CSVER already exists on NuGet."
           else
             echo "same=false" >> $GITHUB_OUTPUT
+            echo "New version detected: $CSVER"
           fi
 
       - name: Restore
