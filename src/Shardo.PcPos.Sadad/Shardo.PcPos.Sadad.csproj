@@ -7,7 +7,7 @@
 		<AssemblyName>Shardo.PcPos.Sadad</AssemblyName>
 		<RootNamespace>Shardo.PcPos.Sadad</RootNamespace>
 		<PackageId>Shardo.PcPos.Sadad</PackageId>
-		<Version>0.3.1</Version>
+		<Version>0.3.2</Version>
 		<Authors>Farinware Co</Authors>
 		<Company>Farinware Co</Company>
 		<Product>Shardo PcPos Sadad Client</Product>
