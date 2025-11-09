@@ -27,7 +27,30 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Get csproj Version
+        id: get_version
+        run: |
+          VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Get NuGet Latest Version
+        id: get_nuget_version
+        run: |
+          NUGET_VERSION=$(dotnet nuget list source https://api.nuget.org/v3/index.json >/dev/null 2>&1; \
+            dotnet nuget search Shardo.PcPos.Sadad --source https://api.nuget.org/v3/index.json --take 1 | grep Shardo.PcPos.Sadad | awk '{print $2}' || echo "0.0.0")
+          echo "nuget_version=$NUGET_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compare Versions
+        id: compare
+        run: |
+          if [ "${{ steps.get_version.outputs.version }}" = "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
+            echo "same=true" >> $GITHUB_OUTPUT
+          else
+            echo "same=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Pack (use Version from csproj)
+        if: steps.compare.outputs.same == 'false'
         run: |
           dotnet pack src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj \
             --configuration Release \
@@ -35,6 +58,7 @@ jobs:
             -o out
 
       - name: Publish to nuget.org (nupkg & snupkg)
+        if: steps.compare.outputs.same == 'false'
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
