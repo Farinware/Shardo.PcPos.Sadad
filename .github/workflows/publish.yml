@@ -28,6 +28,11 @@ jobs:
             9.0.x
             8.0.x
 
+      - name: Prepare NuGet cache folders
+        run: |
+          mkdir -p ~/.nuget/packages
+          mkdir -p ~/.local/share/NuGet/v3-cache
+
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
