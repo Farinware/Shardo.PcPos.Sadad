@@ -1,4 +1,4 @@
-name: Publish to NuGet (from csproj Version)
+name: Publish to NuGet
 
 on:
   push:
@@ -26,31 +26,28 @@ jobs:
         run: |
           VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj | tr -d '\r\n' | tr '[:upper:]' '[:lower:]')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "csproj version: $VERSION"
 
-      - name: Get NuGet Versions
-        id: get_nuget_version
-        run: |
-          PACKAGE_ID="shardo.pcpos.sadad"
-          URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID}/index.json"
-          JSON=$(curl -s $URL || echo "{}")
-          if echo "$JSON" | jq -e '.versions' >/dev/null 2>&1; then
-            echo "$JSON" | jq -r '.versions[]' | tr -d '\r\n' | tr '[:upper:]' '[:lower:]' > versions.txt
-          else
-            echo "" > versions.txt
-          fi
-          echo "nuget_versions=$(cat versions.txt)" >> $GITHUB_OUTPUT
-
-      - name: Compare Versions
+      - name: Check NuGet Version
         id: compare
         run: |
+          PACKAGE_ID="shardo.pcpos.sadad"
           CSVER="${{ steps.get_version.outputs.version }}"
-          FOUND=$(grep -x "$CSVER" versions.txt || true)
-          if [ -n "$FOUND" ]; then
+          URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID}/index.json"
+          echo "Fetching NuGet version list from $URL"
+          JSON=$(curl -s $URL || echo "{}")
+          echo "$JSON" > nuget.json
+          echo "NuGet JSON:"
+          cat nuget.json
+
+          EXISTS=$(echo "$JSON" | jq -r --arg v "$CSVER" '.versions | index($v)')
+          echo "csproj version: $CSVER"
+          if [ "$EXISTS" != "null" ] && [ -n "$EXISTS" ]; then
+            echo "::notice title=NuGet::Version $CSVER already exists on NuGet. Skipping publish."
             echo "same=true" >> $GITHUB_OUTPUT
-            echo "Version $CSVER already exists on NuGet."
           else
+            echo "::notice title=NuGet::New version detected ($CSVER). Proceeding with publish."
             echo "same=false" >> $GITHUB_OUTPUT
-            echo "New version detected: $CSVER"
           fi
 
       - name: Restore
