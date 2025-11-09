@@ -17,10 +17,15 @@
 
 ## نصب
 
-### 1) اضافه کردن پروژه به Solution
-پوشهٔ `src/Shardo.Sadad` را به Solution خود اضافه کنید و رفرنس دهید:
-```xml
-<ProjectReference Include="src/Shardo.Sadad/Shardo.Sadad.csproj" />
+### 1) اضافه کردن پروژه
+
+Nuget Package Manager:
+```
+Install-Package Shardo.PcPos.Sadad
+```
+.NET CLI:
+```
+dotnet add package Shardo.PcPos.Sadad
 ```
 
 ### 2) ثبت سرویس در DI
