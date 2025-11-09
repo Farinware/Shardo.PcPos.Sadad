@@ -21,12 +21,6 @@ jobs:
             9.0.x
             8.0.x
 
-      - name: Restore
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
       - name: Get csproj Version
         id: get_version
         run: |
@@ -36,18 +30,29 @@ jobs:
       - name: Get NuGet Latest Version
         id: get_nuget_version
         run: |
-          NUGET_VERSION=$(dotnet nuget list source https://api.nuget.org/v3/index.json >/dev/null 2>&1; \
-            dotnet nuget search Shardo.PcPos.Sadad --source https://api.nuget.org/v3/index.json --take 1 | grep Shardo.PcPos.Sadad | awk '{print $2}' || echo "0.0.0")
+          PACKAGE_ID="shardo.pcpos.sadad"
+          URL="https://api.nuget.org/v3-flatcontainer/${PACKAGE_ID,,}/index.json"
+          NUGET_VERSION=$(curl -s $URL | jq -r '.versions[-1]' || echo "")
           echo "nuget_version=$NUGET_VERSION" >> $GITHUB_OUTPUT
 
       - name: Compare Versions
         id: compare
         run: |
-          if [ "${{ steps.get_version.outputs.version }}" = "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
+          if [ -z "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
+            echo "same=false" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.get_version.outputs.version }}" = "${{ steps.get_nuget_version.outputs.nuget_version }}" ]; then
             echo "same=true" >> $GITHUB_OUTPUT
           else
             echo "same=false" >> $GITHUB_OUTPUT
           fi
+
+      - name: Restore
+        if: steps.compare.outputs.same == 'false'
+        run: dotnet restore
+
+      - name: Build
+        if: steps.compare.outputs.same == 'false'
+        run: dotnet build --configuration Release --no-restore
 
       - name: Pack (use Version from csproj)
         if: steps.compare.outputs.same == 'false'
