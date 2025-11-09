@@ -1,9 +1,8 @@
-name: Publish to NuGet (from csproj Version)
+name: Publish to NuGet (only when csproj Version is new)
 
 on:
   push:
     branches: [ main ]
-    tags:     [ "v*" ]
   workflow_dispatch: {}
 
 jobs:
@@ -13,6 +12,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -21,13 +22,56 @@ jobs:
             9.0.x
             8.0.x
 
+      - name: Read package metadata from csproj
+        id: meta
+        run: |
+          PROJ="src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj"
+
+          VERSION=$(dotnet msbuild "$PROJ" -nologo -getProperty:Version)
+          PACKAGE_ID=$(dotnet msbuild "$PROJ" -nologo -getProperty:PackageId)
+
+          if [ -z "$PACKAGE_ID" ] || [ "$PACKAGE_ID" = "$(printf '\r')" ]; then
+            PACKAGE_ID=$(basename "$PROJ" .csproj)
+          fi
+
+          VERSION=$(echo "$VERSION" | tr -d '\r')
+          PACKAGE_ID=$(echo "$PACKAGE_ID" | tr -d '\r')
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "package_id=$PACKAGE_ID" >> $GITHUB_OUTPUT
+
+          echo "Detected PACKAGE_ID=$PACKAGE_ID, VERSION=$VERSION"
+
+      - name: Check if version already exists on nuget.org
+        id: check
+        run: |
+          set -e
+          PID="${{ steps.meta.outputs.package_id }}"
+          VER="${{ steps.meta.outputs.version }}"
+
+          PID_LC=$(echo "$PID" | tr '[:upper:]' '[:lower:]')
+
+          EXISTS=$(curl -fsSL "https://api.nuget.org/v3-flatcontainer/${PID_LC}/index.json" \
+            | jq -r --arg v "$VER" '(.versions // []) | index($v)' || true)
+
+          if [ "$EXISTS" = "null" ] || [ -z "$EXISTS" ]; then
+            echo "should_publish=true" >> $GITHUB_OUTPUT
+            echo "NuGet does not have $PID $VER yet. Will publish."
+          else
+            echo "should_publish=false" >> $GITHUB_OUTPUT
+            echo "NuGet already has $PID $VER. Skipping publish."
+          fi
+
       - name: Restore
+        if: steps.check.outputs.should_publish == 'true'
         run: dotnet restore
 
       - name: Build
+        if: steps.check.outputs.should_publish == 'true'
         run: dotnet build --configuration Release --no-restore
 
       - name: Pack (use Version from csproj)
+        if: steps.check.outputs.should_publish == 'true'
         run: |
           dotnet pack src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj \
             --configuration Release \
@@ -35,6 +79,7 @@ jobs:
             -o out
 
       - name: Publish to nuget.org (nupkg & snupkg)
+        if: steps.check.outputs.should_publish == 'true'
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
