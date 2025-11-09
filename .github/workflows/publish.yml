@@ -1,4 +1,4 @@
-name: Publish to NuGet (only when csproj Version is new)
+name: Publish to NuGet
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setup .NET (with NuGet cache)
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
@@ -33,27 +33,11 @@ jobs:
         id: meta
         run: |
           PROJ="src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj"
-
           VERSION=$(dotnet msbuild "$PROJ" -nologo -getProperty:Version | tr -d '\r')
           PACKAGE_ID=$(dotnet msbuild "$PROJ" -nologo -getProperty:PackageId | tr -d '\r')
-
-          if [ -z "$PACKAGE_ID" ]; then
-            PACKAGE_ID=$(basename "$PROJ" .csproj)
-          fi
-
-          echo "version=$VERSION"     >> "$GITHUB_OUTPUT"
+          if [ -z "$PACKAGE_ID" ]; then PACKAGE_ID=$(basename "$PROJ" .csproj); fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "package_id=$PACKAGE_ID" >> "$GITHUB_OUTPUT"
-
-          echo "Detected PACKAGE_ID=$PACKAGE_ID, VERSION=$VERSION"
-
-      - name: Verify packages.lock.json (if present)
-        run: |
-          FILE="src/Shardo.PcPos.Sadad/packages.lock.json"
-          if [ -f "$FILE" ]; then
-            echo "✅ Found lock file: $FILE"
-          else
-            echo "ℹ️ No lock file at $FILE (that's OK; we'll do normal restore)."
-          fi
 
       - name: Check if version already exists on nuget.org
         id: check
@@ -62,31 +46,18 @@ jobs:
           PID="${{ steps.meta.outputs.package_id }}"
           VER="${{ steps.meta.outputs.version }}"
           PID_LC=$(echo "$PID" | tr '[:upper:]' '[:lower:]')
-
-          EXISTS=$(curl -fsSL "https://api.nuget.org/v3-flatcontainer/${PID_LC}/index.json" \
-            | jq -r --arg v "$VER" '(.versions // []) | index($v)' || true)
-
+          EXISTS=$(curl -fsSL "https://api.nuget.org/v3-flatcontainer/${PID_LC}/index.json" | jq -r --arg v "$VER" '(.versions // []) | index($v)' || true)
           if [ "$EXISTS" = "null" ] || [ -z "$EXISTS" ]; then
             echo "should_publish=true" >> "$GITHUB_OUTPUT"
-            echo "NuGet does not have $PID $VER yet. Will publish."
           else
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
-            echo "NuGet already has $PID $VER. Skipping publish."
           fi
 
       - name: Restore
         if: steps.check.outputs.should_publish == 'true'
-        run: |
-          PROJ="src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj"
-          LOCKFILE="src/Shardo.PcPos.Sadad/packages.lock.json"
-          if [ -f "$LOCKFILE" ]; then
-            echo "Using --locked-mode (found $LOCKFILE)"
-            dotnet restore "$PROJ" --locked-mode
-          else
-            dotnet restore "$PROJ"
-          fi
+        run: dotnet restore src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj
 
-      - name: Pack (build inside)
+      - name: Pack
         if: steps.check.outputs.should_publish == 'true'
         run: |
           dotnet pack src/Shardo.PcPos.Sadad/Shardo.PcPos.Sadad.csproj \
