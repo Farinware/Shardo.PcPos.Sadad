@@ -11,6 +11,19 @@ namespace Shardo.PcPos.Sadad.Api
     {
         private readonly HttpClient _http;
         private readonly SadadPcPosOptions _options;
+
+        public PcPosClient(SadadPcPosOptions options)
+        {
+            _options = options ?? new SadadPcPosOptions();
+
+            _http = new HttpClient();
+
+            if (!string.IsNullOrWhiteSpace(_options.BaseAddress))
+                _http.BaseAddress = new Uri(_options.BaseAddress);
+
+            _http.Timeout = _options.RequestTimeout;
+        }
+
         public PcPosClient(HttpClient http, IOptions<SadadPcPosOptions> options)
         {
             _http = http ?? throw new ArgumentNullException(nameof(http));
